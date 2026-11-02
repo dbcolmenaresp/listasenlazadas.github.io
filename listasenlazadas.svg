@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="'Courier New', Courier, monospace">
+  <style>
+    .title-glow { animation: pulseGlow 4s ease-in-out infinite; }
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 10px #00fff9); }
+      50%      { filter: drop-shadow(0 0 26px #00fff9); }
+    }
+    .blink { animation: blink 1.6s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: 0.25; } }
+  </style>
+
+  <defs>
+    <filter id="glowCyan" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowMagenta" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowMag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff2bd6"/>
+    </marker>
+    <linearGradient id="linkGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00fff9"/>
+      <stop offset="100%" stop-color="#ff2bd6"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00fff9" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
+      <stop offset="40%"  stop-color="#05060a" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#05060a" stop-opacity="0.9"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#00fff9" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#00fff9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- FONDO -->
+  <rect width="1200" height="900" fill="#05060a"/>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+  <circle cx="600" cy="450" r="380" fill="url(#halo)"/>
+  <rect width="1200" height="900" fill="url(#vignette)"/>
+
+  <!-- ESQUINAS -->
+  <path d="M 30 70 L 30 30 L 70 30"     fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 1130 30 L 1170 30 L 1170 70" fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 30 830 L 30 870 L 70 870"    fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 1130 870 L 1170 870 L 1170 830" fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
+  <rect x="30" y="30" width="1140" height="840" fill="none" stroke="#00fff9" stroke-opacity="0.15"/>
+
+  <!-- HEADER -->
+  <text x="600" y="80" text-anchor="middle" fill="#ff2bd6" font-size="13" letter-spacing="6" class="blink">// ESTRUCTURA DE DATOS DINÁMICA</text>
+  <text x="600" y="140" text-anchor="middle" fill="#00fff9" font-size="52" font-weight="bold" letter-spacing="4" class="title-glow">LISTAS ENLAZADAS</text>
+  <line x1="420" y1="165" x2="780" y2="165" stroke="#00fff9" stroke-opacity="0.4"/>
+
+  <!-- ============ SECCIÓN 01 ============ -->
+  <rect x="60" y="205" width="56" height="26" rx="4" fill="none" stroke="#ff2bd6" stroke-width="1.5" opacity="0.85"/>
+  <text x="88" y="223" text-anchor="middle" fill="#ff2bd6" font-size="14" letter-spacing="3">01</text>
+  <text x="130" y="224" fill="#f9f002" font-size="16" font-weight="bold" letter-spacing="3">ANATOMÍA DEL NODO</text>
+
+  <!-- Caja del nodo -->
+  <rect x="350" y="240" width="500" height="130" rx="12" fill="#00fff9" fill-opacity="0.04" stroke="#00fff9" stroke-width="2" filter="url(#glowCyan)"/>
+  <line x1="600" y1="240" x2="600" y2="370" stroke="#00fff9" stroke-opacity="0.3"/>
+
+  <!-- Etiquetas -->
+  <text x="475" y="278" text-anchor="middle" fill="#00fff9" font-size="13" letter-spacing="3">dato</text>
+  <text x="725" y="278" text-anchor="middle" fill="#ff2bd6" font-size="13" letter-spacing="3">siguiente</text>
+
+  <!-- Valor dato -->
+  <text x="475" y="340" text-anchor="middle" fill="#00fff9" font-size="52" font-weight="bold" filter="url(#glowCyan)">42</text>
+
+  <!-- Flecha siguiente (dibujada) -->
+  <g transform="translate(683, 320)">
+    <line x1="0" y1="0" x2="68" y2="0" stroke="#ff2bd6" stroke-width="4"/>
+    <polygon points="68,-11 90,0 68,11" fill="#ff2bd6"/>
+  </g>
+
+  <!-- Anotación -->
+  <text x="600" y="408" text-anchor="middle" fill="#d7e1ff" font-size="15" opacity="0.9">Un nodo almacena un dato y una referencia al siguiente nodo.</text>
+
+  <!-- ============ SECCIÓN 02 ============ -->
+  <rect x="60" y="465" width="56" height="26" rx="4" fill="none" stroke="#ff2bd6" stroke-width="1.5" opacity="0.85"/>
+  <text x="88" y="483" text-anchor="middle" fill="#ff2bd6" font-size="14" letter-spacing="3">02</text>
+  <text x="130" y="484" fill="#f9f002" font-size="16" font-weight="bold" letter-spacing="3">CADENA DE NODOS</text>
+
+  <!-- HEAD pointer -->
+  <text x="230" y="522" text-anchor="middle" fill="#00fff9" font-size="12" letter-spacing="4">HEAD</text>
+  <line x1="230" y1="530" x2="230" y2="557" stroke="#ff2bd6" stroke-width="2" marker-end="url(#arrowMag)"/>
+
+  <!-- Nodo 1 -->
+  <rect x="180" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
+  <text x="230" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">10</text>
+  <circle cx="278" cy="600" r="4" fill="#ff2bd6"/>
+
+  <!-- Enlace 1 -->
+  <line x1="284" y1="600" x2="354" y2="600" stroke="url(#linkGrad)" stroke-width="2" marker-end="url(#arrowMag)"/>
+  <text x="320" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+
+  <!-- Nodo 2 -->
+  <rect x="360" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
+  <text x="410" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">20</text>
+  <circle cx="458" cy="600" r="4" fill="#ff2bd6"/>
+
+  <!-- Enlace 2 -->
+  <line x1="464" y1="600" x2="534" y2="600" stroke="url(#linkGrad)" stroke-width="2" marker-end="url(#arrowMag)"/>
+  <text x="500" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+
+  <!-- Nodo 3 -->
+  <rect x="540" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
+  <text x="590" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">30</text>
+  <circle cx="638" cy="600" r="4" fill="#ff2bd6"/>
+
+  <!-- Enlace 3 (punteado hasta NULL) -->
+  <line x1="644" y1="600" x2="714" y2="600" stroke="#6b7a99" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowMag)"/>
+  <text x="680" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+
+  <!-- NULL -->
+  <rect x="720" y="580" width="90" height="40" rx="6" fill="none" stroke="#6b7a99" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="765" y="606" text-anchor="middle" fill="#6b7a99" font-size="13" letter-spacing="3">NULL</text>
+
+  <!-- Anotación inferior -->
+  <text x="600" y="692" text-anchor="middle" fill="#d7e1ff" font-size="15" opacity="0.9">Se accede por la cabeza · cada nodo conoce al siguiente · el último apunta a null</text>
+
+  <!-- Divisor -->
+  <line x1="200" y1="740" x2="1000" y2="740" stroke="#00fff9" stroke-opacity="0.2"/>
+
+  <!-- Cita final -->
+  <text x="600" y="792" text-anchor="middle" fill="#f9f002" font-size="16" font-style="italic" letter-spacing="1">"En una lista enlazada no movemos datos: movemos enlaces."</text>
+
+  <!-- Pie -->
+  <text x="600" y="842" text-anchor="middle" fill="#6b7a99" font-size="11" letter-spacing="4">v1.0 · NEON LINK · FUNDAMENTOS DE LISTAS ENLAZADAS</text>
+</svg>
