@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON::LINKED_LISTS — Manual Cyberpunk de Listas Enlazadas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   VARIABLES Y BASE
+   ============================================================ */
+:root{
+  --bg:#05070d;
+  --panel:#0a0f1e;
+  --panel-2:#0d1428;
+  --cyan:#00f0ff;
+  --magenta:#ff2bd6;
+  --yellow:#ffe600;
+  --green:#39ff14;
+  --purple:#9d4edd;
+  --text:#bfe9f5;
+  --dim:#5b7a8c;
+  --mono:'Share Tech Mono','Courier New',monospace;
+  --display:'Orbitron','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  line-height:1.65;
+  overflow-x:hidden;
+  position:relative;
+  min-height:100vh;
+}
+
+/* Fondo de rejilla */
+.grid-bg{
+  position:fixed;inset:0;z-index:-2;
+  background-image:
+    linear-gradient(rgba(0,240,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,.055) 1px, transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse at 50% 0%, #000 10%, transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%, #000 10%, transparent 78%);
+  animation:gridMove 22s linear infinite;
+}
+@keyframes gridMove{from{background-position:0 0,0 0}to{background-position:52px 52px,52px 52px}}
+
+/* Brillo ambiental */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,43,214,.10), transparent 45%),
+    radial-gradient(circle at 85% 30%, rgba(0,240,255,.10), transparent 45%),
+    radial-gradient(circle at 50% 95%, rgba(157,78,221,.12), transparent 50%);
+}
+
+/* Scanlines CRT */
+.scanlines{
+  position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,.28) 3px,
+    rgba(0,0,0,.28) 4px
+  );
+  opacity:.35;
+  mix-blend-mode:multiply;
+}
+.scanlines::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg, transparent 0%, rgba(0,240,255,.045) 50%, transparent 100%);
+  animation:flicker 6s linear infinite;
+}
+@keyframes flicker{
+  0%,100%{opacity:.2}
+  48%{opacity:.2}
+  50%{opacity:.55}
+  52%{opacity:.2}
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+nav{
+  position:sticky;top:0;z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:1rem;padding:.75rem clamp(1rem,4vw,3rem);
+  background:rgba(5,7,13,.82);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,240,255,.28);
+  box-shadow:0 0 24px rgba(0,240,255,.14);
+  flex-wrap:wrap;
+}
+.brand{
+  font-family:var(--display);font-weight:900;letter-spacing:.14em;
+  font-size:.95rem;color:var(--cyan);
+  text-shadow:0 0 10px rgba(0,240,255,.85);
+  white-space:nowrap;
+}
+.brand span{color:var(--magenta);text-shadow:0 0 10px rgba(255,43,214,.85)}
+nav ul{display:flex;gap:clamp(.5rem,2vw,1.5rem);list-style:none;flex-wrap:wrap}
+nav a{
+  color:var(--dim);text-decoration:none;font-size:.78rem;
+  letter-spacing:.14em;text-transform:uppercase;
+  transition:.25s;position:relative;padding:.25rem 0;
+}
+nav a::after{
+  content:'';position:absolute;left:0;bottom:0;height:1px;width:0;
+  background:var(--cyan);box-shadow:0 0 8px var(--cyan);transition:width .3s;
+}
+nav a:hover{color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.8)}
+nav a:hover::after{width:100%}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+header.hero{
+  min-height:88vh;display:grid;place-content:center;text-align:center;
+  padding:4rem 1.5rem 5rem;position:relative;
+}
+.hero-tag{
+  display:inline-block;font-size:.72rem;letter-spacing:.35em;
+  color:var(--magenta);border:1px solid rgba(255,43,214,.5);
+  padding:.4rem 1rem;margin-bottom:1.8rem;
+  background:rgba(255,43,214,.07);
+  box-shadow:0 0 18px rgba(255,43,214,.28), inset 0 0 18px rgba(255,43,214,.08);
+  animation:tagPulse 3s ease-in-out infinite;
+}
+@keyframes tagPulse{0%,100%{opacity:.85}50%{opacity:1}}
+
+.glitch{
+  position:relative;display:inline-block;
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(2rem,7.5vw,5.2rem);
+  letter-spacing:.06em;line-height:1.05;
+  color:#eafcff;
+  text-shadow:0 0 12px rgba(0,240,255,.9), 0 0 42px rgba(0,240,255,.45);
+}
+.glitch::before,.glitch::after{
+  content:attr(data-text);position:absolute;inset:0;
+  pointer-events:none;
+}
+.glitch::before{
+  color:var(--magenta);text-shadow:-2px 0 var(--magenta);
+  animation:glitchTop 3.2s infinite linear alternate-reverse;
+}
+.glitch::after{
+  color:var(--cyan);text-shadow:2px 0 var(--cyan);
+  animation:glitchBot 2.7s infinite linear alternate-reverse;
+}
+@keyframes glitchTop{
+  0%,88%,100%{clip-path:inset(100% 0 0 0);transform:translate(0,0)}
+  90%{clip-path:inset(12% 0 68% 0);transform:translate(-4px,-1px)}
+  93%{clip-path:inset(52% 0 28% 0);transform:translate(4px,1px)}
+  96%{clip-path:inset(78% 0 8% 0);transform:translate(-3px,0)}
+}
+@keyframes glitchBot{
+  0%,85%,100%{clip-path:inset(100% 0 0 0);transform:translate(0,0)}
+  87%{clip-path:inset(30% 0 55% 0);transform:translate(4px,1px)}
+  91%{clip-path:inset(66% 0 18% 0);transform:translate(-4px,-1px)}
+  95%{clip-path:inset(8% 0 82% 0);transform:translate(3px,0)}
+}
+.hero-sub{
+  margin-top:1.6rem;font-size:clamp(.85rem,1.8vw,1.05rem);
+  color:var(--dim);letter-spacing:.16em;min-height:1.6em;
+}
+.hero-sub .cursor{
+  display:inline-block;width:9px;height:1.05em;vertical-align:-2px;
+  background:var(--cyan);box-shadow:0 0 10px var(--cyan);
+  animation:blink 1s steps(1) infinite;
+}
+@keyframes blink{50%{opacity:0}}
+
+.hero-stats{
+  display:flex;gap:clamp(1rem,4vw,3rem);justify-content:center;
+  margin-top:3rem;flex-wrap:wrap;
+}
+.hero-stat{text-align:center}
+.hero-stat b{
+  display:block;font-family:var(--display);font-size:clamp(1.2rem,3vw,1.8rem);
+  color:var(--cyan);text-shadow:0 0 14px rgba(0,240,255,.8);
+}
+.hero-stat span{font-size:.68rem;letter-spacing:.22em;color:var(--dim)}
+
+.scroll-hint{
+  margin-top:3.5rem;font-size:.7rem;letter-spacing:.3em;color:var(--dim);
+  animation:bob 2.2s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.6}50%{transform:translateY(8px);opacity:1}}
+
+/* ============================================================
+   SECCIONES
+   ============================================================ */
+section.section{
+  max-width:1200px;margin:0 auto;
+  padding:clamp(3rem,7vw,6rem) clamp(1rem,4vw,2rem);
+}
+.section-title{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(1.4rem,4vw,2.4rem);
+  letter-spacing:.1em;color:#eafcff;margin-bottom:.4rem;
+  position:relative;display:inline-block;
+  text-shadow:0 0 14px rgba(0,240,255,.55);
+}
+.section-title::before{
+  content:'// ';color:var(--magenta);
+  text-shadow:0 0 12px rgba(255,43,214,.9);
+}
+.section-sub{
+  color:var(--dim);font-size:.8rem;letter-spacing:.2em;
+  margin-bottom:2.6rem;text-transform:uppercase;
+}
+.section-sub::before{content:'> ';color:var(--green)}
+
+/* Reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ============================================================
+   TARJETAS DE FUNDAMENTOS
+   ============================================================ */
+.cards{
+  display:grid;gap:1.2rem;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+}
+.card{
+  position:relative;padding:1.6rem 1.3rem;
+  background:linear-gradient(160deg, rgba(13,20,40,.95), rgba(8,12,24,.95));
+  border:1px solid rgba(0,240,255,.26);
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  transition:.35s;
+  overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+  transition:left .6s;
+}
+.card:hover{
+  border-color:rgba(0,240,255,.75);
+  box-shadow:0 0 28px rgba(0,240,255,.2), inset 0 0 28px rgba(0,240,255,.05);
+  transform:translateY(-4px);
+}
+.card:hover::before{left:100%}
+.card .ico{
+  font-size:1.7rem;display:block;margin-bottom:.7rem;
+  filter:drop-shadow(0 0 10px currentColor);
+}
+.card h3{
+  font-family:var(--display);font-size:.95rem;letter-spacing:.12em;
+  color:var(--cyan);margin-bottom:.55rem;
+}
+.card p{font-size:.85rem;color:#9dbfd0}
+.card code{
+  background:rgba(255,43,214,.13);color:var(--magenta);
+  padding:.05rem .35rem;border:1px solid rgba(255,43,214,.3);
+  font-size:.82em;
+}
+.card.alt h3{color:var(--magenta)}
+.card.alt{border-color:rgba(255,43,214,.28)}
+.card.alt:hover{border-color:rgba(255,43,214,.8);box-shadow:0 0 28px rgba(255,43,214,.22)}
+
+/* Analogía memoria */
+.analogy{
+  margin-top:1.6rem;padding:1.2rem 1.4rem;
+  border-left:3px solid var(--yellow);
+  background:rgba(255,230,0,.055);
+  font-size:.86rem;color:#d8e8f0;
+}
+.analogy b{color:var(--yellow)}
+
+/* ============================================================
+   LABORATORIO
+   ============================================================ */
+.lab-panel{
+  border:1px solid rgba(0,240,255,.3);
+  background:linear-gradient(180deg, rgba(10,16,32,.96), rgba(6,9,18,.96));
+  box-shadow:0 0 40px rgba(0,240,255,.12), inset 0 0 60px rgba(0,240,255,.03);
+  clip-path:polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+  overflow:hidden;
+}
+.lab-head{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.6rem 1rem;border-bottom:1px solid rgba(0,240,255,.25);
+  background:rgba(0,240,255,.05);
+  font-size:.72rem;letter-spacing:.22em;color:var(--cyan);
+}
+.lab-head .dot{width:9px;height:9px;border-radius:50%;background:var(--magenta);box-shadow:0 0 10px var(--magenta);animation:tagPulse 1.6s infinite}
+
+/* Pista de nodos */
+.track-wrap{
+  padding:2.4rem 1rem 1.6rem;
+  min-height:190px;display:grid;place-items:center;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,240,255,.035) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, rgba(0,240,255,.035) 0 1px, transparent 1px 44px);
+  overflow-x:auto;
+}
+.track{
+  display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:.15rem;padding:.5rem;min-height:120px;
+}
+
+.head-badge{
+  font-size:.62rem;letter-spacing:.2em;color:var(--yellow);
+  border:1px solid var(--yellow);padding:.35rem .55rem;
+  background:rgba(255,230,0,.08);
+  box-shadow:0 0 14px rgba(255,230,0,.35);
+  white-space:nowrap;
+}
+.node{
+  width:74px;height:74px;flex:0 0 auto;
+  display:grid;place-items:center;
+  font-size:1.35rem;font-weight:700;color:var(--cyan);
+  background:linear-gradient(160deg,#0f1a33,#0a0f1e);
+  border:2px solid var(--cyan);
+  clip-path:polygon(14% 0,100% 0,100% 86%,86% 100%,0 100%,0 14%);
+  filter:drop-shadow(0 0 9px rgba(0,240,255,.55));
+  transition:transform .3s, color .3s, border-color .3s, filter .3s, background .3s;
+  position:relative;
+}
+.node::after{
+  content:'next';position:absolute;bottom:3px;right:6px;
+  font-size:.5rem;letter-spacing:.1em;color:var(--magenta);opacity:.65;
+}
+.arrow{
+  position:relative;width:46px;height:2px;flex:0 0 auto;
+  background:linear-gradient(90deg, rgba(255,43,214,.85), rgba(0,240,255,.85));
+  box-shadow:0 0 8px rgba(0,240,255,.5);
+}
+.arrow::after{
+  content:'';position:absolute;right:-2px;top:-4.5px;
+  border-left:9px solid var(--cyan);
+  border-top:5.5px solid transparent;
+  border-bottom:5.5px solid transparent;
+}
+.null-node{
+  width:74px;height:74px;flex:0 0 auto;
+  display:grid;place-items:center;
+  font-size:.8rem;letter-spacing:.1em;color:var(--dim);
+  border:2px dashed rgba(91,122,140,.65);
+  clip-path:polygon(14% 0,100% 0,100% 86%,86% 100%,0 100%,0 14%);
+}
+
+/* Estados animados */
+.node.active{
+  color:var(--yellow);border-color:var(--yellow);
+  filter:drop-shadow(0 0 18px rgba(255,230,0,.95));
+  transform:translateY(-8px) scale(1.06);
+  background:linear-gradient(160deg,#2a2506,#12100a);
+}
+.node.visited{
+  border-color:rgba(157,78,221,.85);color:var(--purple);
+  filter:drop-shadow(0 0 10px rgba(157,78,221,.6));
+}
+.node.found{
+  border-color:var(--green);color:var(--green);
+  filter:drop-shadow(0 0 22px rgba(57,255,20,.95));
+  animation:foundPop .55s ease;
+}
+@keyframes foundPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+.node.spawn{animation:spawn .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes spawn{
+  from{transform:scale(0) rotate(-120deg);opacity:0}
+  to{transform:scale(1) rotate(0);opacity:1}
+}
+.node.removing{
+  animation:explode .45s forwards;
+  border-color:var(--magenta);color:var(--magenta);
+}
+@keyframes explode{
+  to{transform:scale(1.7) rotate(18deg);opacity:0;
+     filter:drop-shadow(0 0 26px var(--magenta))}
+}
+
+/* Controles */
+.controls{
+  display:flex;flex-wrap:wrap;gap:.6rem;
+  padding:1.2rem;border-top:1px solid rgba(0,240,255,.18);
+  background:rgba(0,240,255,.025);
+}
+.cyber-input{
+  flex:1 1 130px;min-width:90px;
+  background:#060a14;color:var(--cyan);
+  border:1px solid rgba(0,240,255,.45);
+  padding:.65rem .8rem;font-family:var(--mono);font-size:.85rem;
+  outline:none;transition:.25s;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.cyber-input::placeholder{color:#3f5b6b}
+.cyber-input:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 18px rgba(0,240,255,.35), inset 0 0 14px rgba(0,240,255,.08);
+}
+.cyber-input.small{flex:0 1 100px}
+
+.btn{
+  flex:0 1 auto;
+  background:rgba(0,240,255,.07);
+  color:var(--cyan);border:1px solid rgba(0,240,255,.5);
+  padding:.65rem 1rem;font-family:var(--mono);font-size:.74rem;
+  letter-spacing:.12em;cursor:pointer;transition:.22s;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  white-space:nowrap;
+}
+.btn:hover{
+  background:rgba(0,240,255,.2);border-color:var(--cyan);
+  box-shadow:0 0 20px rgba(0,240,255,.5);
+  transform:translateY(-2px);
+}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn.magenta{color:var(--magenta);border-color:rgba(255,43,214,.5);background:rgba(255,43,214,.07)}
+.btn.magenta:hover{background:rgba(255,43,214,.2);box-shadow:0 0 20px rgba(255,43,214,.5)}
+.btn.green{color:var(--green);border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.07)}
+.btn.green:hover{background:rgba(57,255,20,.2);box-shadow:0 0 20px rgba(57,255,20,.5)}
+.btn.warn{color:var(--yellow);border-color:rgba(255,230,0,.5);background:rgba(255,230,0,.07)}
+.btn.warn:hover{background:rgba(255,230,0,.2);box-shadow:0 0 20px rgba(255,230,0,.5)}
+
+/* Terminal */
+.terminal{border-top:1px solid rgba(0,240,255,.2)}
+.terminal-head{
+  padding:.5rem 1rem;font-size:.68rem;letter-spacing:.2em;
+  color:var(--green);background:rgba(57,255,20,.05);
+  border-bottom:1px solid rgba(57,255,20,.18);
+}
+.log{
+  height:190px;overflow-y:auto;padding:.8rem 1rem;
+  font-size:.78rem;line-height:1.75;
+  background:rgba(0,0,0,.42);
+}
+.log::-webkit-scrollbar{width:7px}
+.log::-webkit-scrollbar-track{background:rgba(0,240,255,.05)}
+.log::-webkit-scrollbar-thumb{background:rgba(0,240,255,.35)}
+.log-line{animation:logIn .3s ease}
+@keyframes logIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.log-line .ts{color:#33566b;font-size:.72rem}
+.log-line.info{color:var(--cyan)}
+.log-line.ok{color:var(--green)}
+.log-line.err{color:var(--magenta)}
+.log-line.warn{color:var(--yellow)}
+.log-line.dim{color:#7ea9bd}
+
+/* ============================================================
+   TIPOS DE LISTAS
+   ============================================================ */
+.types{
+  display:grid;gap:1.3rem;
+  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+}
+.type-card{
+  padding:1.4rem;border:1px solid rgba(0,240,255,.25);
+  background:linear-gradient(170deg, rgba(13,20,40,.9), rgba(6,9,18,.9));
+  transition:.35s;
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.type-card:hover{
+  border-color:rgba(0,240,255,.8);
+  box-shadow:0 0 32px rgba(0,240,255,.2);
+  transform:translateY(-4px);
+}
+.type-card h3{
+  font-family:var(--display);font-size:.9rem;letter-spacing:.1em;
+  color:var(--cyan);margin-bottom:.3rem;
+}
+.type-card .badge{
+  display:inline-block;font-size:.6rem;letter-spacing:.16em;
+  padding:.15rem .45rem;border:1px solid rgba(255,43,214,.5);
+  color:var(--magenta);margin-bottom:.9rem;
+}
+.type-card svg{width:100%;height:auto;display:block;margin:.8rem 0}
+.type-card p{font-size:.82rem;color:#9dbfd0}
+.type-card ul{margin:.6rem 0 0 1rem;font-size:.8rem;color:#8fb4c6}
+.type-card li{margin-bottom:.25rem}
+
+/* ============================================================
+   CÓDIGO
+   ============================================================ */
+.code-wrap{
+  border:1px solid rgba(0,240,255,.28);
+  background:#060a14;
+  overflow:hidden;
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.tabs{
+  display:flex;gap:0;border-bottom:1px solid rgba(0,240,255,.25);
+  background:rgba(0,240,255,.04);overflow-x:auto;
+}
+.tab{
+  padding:.75rem 1.4rem;background:transparent;border:none;
+  border-right:1px solid rgba(0,240,255,.13);
+  color:var(--dim);font-family:var(--mono);font-size:.78rem;
+  letter-spacing:.14em;cursor:pointer;transition:.25s;white-space:nowrap;
+}
+.tab:hover{color:var(--cyan);background:rgba(0,240,255,.07)}
+.tab.active{
+  color:var(--cyan);background:rgba(0,240,255,.11);
+  box-shadow:inset 0 -2px 0 var(--cyan), 0 0 18px rgba(0,240,255,.2);
+}
+pre{
+  margin:0;padding:1.4rem;overflow-x:auto;
+  font-size:.82rem;line-height:1.7;
+}
+pre code{font-family:var(--mono);color:#a9d5e6}
+.c-kw{color:var(--magenta);text-shadow:0 0 8px rgba(255,43,214,.5)}
+.c-str{color:var(--yellow)}
+.c-com{color:#3f6577;font-style:italic}
+.c-num{color:var(--green)}
+pre::-webkit-scrollbar{height:8px}
+pre::-webkit-scrollbar-track{background:rgba(0,240,255,.05)}
+pre::-webkit-scrollbar-thumb{background:rgba(0,240,255,.3)}
+
+/* ============================================================
+   TABLA COMPLEJIDAD
+   ============================================================ */
+.table-wrap{overflow-x:auto;border:1px solid rgba(0,240,255,.25)}
+table{width:100%;border-collapse:collapse;min-width:520px;font-size:.83rem}
+th{
+  background:rgba(0,240,255,.1);color:var(--cyan);
+  padding:.85rem 1rem;text-align:left;
+  font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  border-bottom:1px solid rgba(0,240,255,.35);
+}
+td{padding:.75rem 1rem;border-bottom:1px solid rgba(0,240,255,.1);color:#a9cddd}
+tr:hover td{background:rgba(0,240,255,.05);color:#e3f7ff}
+.big-o{font-weight:700;letter-spacing:.06em}
+.o1{color:var(--green);text-shadow:0 0 10px rgba(57,255,20,.5)}
+.on{color:var(--yellow);text-shadow:0 0 10px rgba(255,230,0,.5)}
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+.quiz-box{
+  border:1px solid rgba(255,43,214,.3);
+  background:linear-gradient(170deg, rgba(20,8,28,.92), rgba(6,9,18,.92));
+  padding:clamp(1.2rem,4vw,2.2rem);
+  box-shadow:0 0 40px rgba(255,43,214,.13);
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.quiz-meta{
+  font-size:.7rem;letter-spacing:.22em;color:var(--magenta);
+  margin-bottom:1.1rem;
+}
+.quiz-q{
+  font-size:clamp(.95rem,2.2vw,1.12rem);color:#e6f6ff;
+  margin-bottom:1.4rem;line-height:1.55;
+}
+.quiz-opts{display:grid;gap:.6rem}
+.quiz-opt{
+  text-align:left;padding:.85rem 1.1rem;cursor:pointer;
+  background:rgba(0,240,255,.05);color:var(--text);
+  border:1px solid rgba(0,240,255,.28);
+  font-family:var(--mono);font-size:.85rem;transition:.22s;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.quiz-opt:hover:not(:disabled){
+  background:rgba(0,240,255,.16);border-color:var(--cyan);
+  box-shadow:0 0 20px rgba(0,240,255,.3);transform:translateX(5px);
+}
+.quiz-opt:disabled{cursor:default;opacity:.75}
+.quiz-opt.correct{
+  background:rgba(57,255,20,.18);border-color:var(--green);
+  color:var(--green);box-shadow:0 0 22px rgba(57,255,20,.4);opacity:1;
+}
+.quiz-opt.wrong{
+  background:rgba(255,43,214,.16);border-color:var(--magenta);
+  color:var(--magenta);opacity:1;
+}
+.quiz-exp{
+  margin-top:1.2rem;padding:.9rem 1rem;
+  border-left:3px solid var(--yellow);background:rgba(255,230,0,.06);
+  font-size:.82rem;color:#d8e8f0;display:none;
+}
+.quiz-exp.show{display:block;animation:logIn .35s ease}
+.quiz-result{text-align:center;padding:1.5rem 0}
+.quiz-result .score{
+  font-family:var(--display);font-size:clamp(2rem,8vw,3.6rem);
+  color:var(--cyan);text-shadow:0 0 26px rgba(0,240,255,.8);
+  display:block;margin:.5rem 0 1rem;
+}
+.quiz-result .msg{color:var(--dim);margin-bottom:1.6rem;letter-spacing:.1em}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{
+  border-top:1px solid rgba(0,240,255,.22);
+  padding:2.5rem 1.5rem;text-align:center;
+  color:var(--dim);font-size:.75rem;letter-spacing:.14em;
+  background:rgba(0,0,0,.35);
+}
+footer .glow{color:var(--cyan);text-shadow:0 0 12px rgba(0,240,255,.7)}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:640px){
+  .node,.null-node{width:56px;height:56px;font-size:1.05rem}
+  .null-node{font-size:.65rem}
+  .arrow{width:26px}
+  .head-badge{font-size:.55rem;padding:.3rem .4rem}
+  .controls{padding:.9rem}
+  .btn{flex:1 1 calc(50% - .6rem);font-size:.68rem;padding:.6rem .5rem}
+  .log{height:160px;font-size:.72rem}
+  .hero-stats{gap:1.4rem}
+  nav ul{gap:.7rem}
+  nav a{font-size:.68rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  .grid-bg{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="brand">NEON::<span>LINKED</span>_LISTS</div>
+  <ul>
+    <li><a href="#fundamentos">Fundamentos</a></li>
+    <li><a href="#lab">Laboratorio</a></li>
+    <li><a href="#tipos">Tipos</a></li>
+    <li><a href="#codigo">Código</a></li>
+    <li><a href="#complejidad">Complejidad</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div>
+    <div class="hero-tag">// ESTRUCTURAS DE DATOS · MÓDULO 03</div>
+    <h1 class="glitch" data-text="LISTAS ENLAZADAS">LISTAS ENLAZADAS</h1>
+    <p class="hero-sub"><span id="typer"></span><span class="cursor"></span></p>
+    <div class="hero-stats">
+      <div class="hero-stat"><b>O(1)</b><span>INSERCIÓN HEAD</span></div>
+      <div class="hero-stat"><b>O(n)</b><span>BÚSQUEDA</span></div>
+      <div class="hero-stat"><b>∞</b><span>TAMAÑO DINÁMICO</span></div>
+    </div>
+    <div class="scroll-hint">▼ SCROLL PARA INICIAR ▼</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= FUNDAMENTOS ================= -->
+<section id="fundamentos" class="section">
+  <h2 class="section-title reveal">Fundamentos</h2>
+  <p class="section-sub reveal">Los cuatro pilares de una estructura enlazada</p>
+
+  <div class="cards">
+    <div class="card reveal">
+      <span class="ico">🔹</span>
+      <h3>NODO (Node)</h3>
+      <p>La unidad mínima. Un nodo guarda dos cosas: un <code>dato</code> (el valor) y un <code>next</code> (la referencia al nodo siguiente). Es el "eslabón" de la cadena.</p>
+    </div>
+    <div class="card alt reveal">
+      <span class="ico">🎯</span>
+      <h3>HEAD</h3>
+      <p>El puntero de entrada. Si conoces <code>head</code>, puedes recorrer toda la lista. Si <code>head</code> es <code>null</code>, la lista está <strong>vacía</strong>.</p>
+    </div>
+    <div class="card reveal">
+      <span class="ico">➡️</span>
+      <h3>PUNTERO NEXT</h3>
+      <p>Cada nodo apunta al siguiente mediante <code>next</code>. Los nodos <strong>no</strong> están contiguos en memoria: pueden estar dispersos. El puntero es el hilo que los conecta.</p>
+    </div>
+    <div class="card alt reveal">
+      <span class="ico">⛔</span>
+      <h3>NULL / TAIL</h3>
+      <p>El último nodo apunta a <code>null</code> (o <code>None</code>, <code>nullptr</code>). Esa marca indica el final del camino y detiene los recorridos.</p>
+    </div>
+  </div>
+
+  <div class="analogy reveal">
+    <b>ANALOGÍA:</b> Piensa en un <b>rally de pistas</b>. No sabes de antemano cuántas pistas habrá. Cada sobre contiene una dirección y dentro está <em>la dirección del siguiente sobre</em>. Solo necesitas la dirección del primero (HEAD) para seguir toda la cadena. Un array es una fila de casas numeradas; una lista enlazada es un tesoro con pistas encadenadas.
+  </div>
+
+  <div class="cards" style="margin-top:1.6rem">
+    <div class="card reveal">
+      <span class="ico">⚖️</span>
+      <h3>ARRAY vs LISTA ENLAZADA</h3>
+      <p><strong>Array:</strong> acceso por índice O(1), tamaño fijo, inserción costosa. <br><strong>Lista:</strong> acceso secuencial O(n), tamaño dinámico, inserción/borrado baratos si ya tienes el nodo.</p>
+    </div>
+    <div class="card alt reveal">
+      <span class="ico">🧠</span>
+      <h3>MEMORIA</h3>
+      <p>Cada nodo se asigna dinámicamente (<code>new</code>, <code>malloc</code>). Por eso en C/C++ es vital liberar con <code>delete</code>/<code>free</code>. En Java, Python o JS, el recolector de basura lo hace por ti.</p>
+    </div>
+    <div class="card reveal">
+      <span class="ico">⚠️</span>
+      <h3>RIESGOS</h3>
+      <p>Perder <code>head</code> = perder toda la lista. Olvidar reconectar <code>next</code> = perder la cola. Un <code>next</code> mal apuntado = bucle infinito.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LABORATORIO ================= -->
+<section id="lab" class="section">
+  <h2 class="section-title reveal">Laboratorio</h2>
+  <p class="section-sub reveal">Manipula la estructura en tiempo real · observa los punteros</p>
+
+  <div class="lab-panel reveal">
+    <div class="lab-head"><span class="dot"></span> LIVE VIEW :: HEAD → ... → NULL</div>
+
+    <div class="track-wrap">
+      <div id="track" class="track"></div>
+    </div>
+
+    <div class="controls">
+      <input id="inputVal" class="cyber-input" type="text" placeholder="valor (ej. 42)" autocomplete="off">
+      <input id="inputIdx" class="cyber-input small" type="number" min="0" placeholder="índice" autocomplete="off">
+      <button class="btn" data-action="head">⇤ INSERT HEAD</button>
+      <button class="btn" data-action="tail">INSERT TAIL ⇥</button>
+      <button class="btn" data-action="index">INSERT @ÍNDICE</button>
+      <button class="btn green" data-action="search">🔍 BUSCAR</button>
+      <button class="btn magenta" data-action="delete">✖ ELIMINAR</button>
+      <button class="btn warn" data-action="traverse">▶ RECORRER</button>
+      <button class="btn" data-action="random">🎲 RANDOM</button>
+      <button class="btn magenta" data-action="reset">⟲ RESET</button>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-head">▶ CONSOLE :: linked_list.log</div>
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TIPOS ================= -->
+<section id="tipos" class="section">
+  <h2 class="section-title reveal">Tipos</h2>
+  <p class="section-sub reveal">Variantes de la estructura enlazada</p>
+
+  <div class="types">
+    <div class="type-card reveal">
+      <span class="badge">SIMPLE</span>
+      <h3>Lista Simplemente Enlazada</h3>
+      <svg viewBox="0 0 300 96" aria-label="Lista simple">
+        <defs>
+          <marker id="ar1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#00f0ff"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="#00f0ff" stroke-width="2">
+          <rect x="8" y="30" width="58" height="36"/>
+          <rect x="122" y="30" width="58" height="36"/>
+          <rect x="236" y="30" width="58" height="36"/>
+          <line x1="66" y1="48" x2="118" y2="48" marker-end="url(#ar1)"/>
+          <line x1="180" y1="48" x2="232" y2="48" marker-end="url(#ar1)"/>
+          <line x1="294" y1="48" x2="298" y2="48"/>
+        </g>
+        <g fill="#bfe9f5" font-size="12" font-family="monospace" text-anchor="middle">
+          <text x="37" y="53">10</text><text x="151" y="53">20</text><text x="265" y="53">30</text>
+        </g>
+        <text x="298" y="30" fill="#ff2bd6" font-size="10" font-family="monospace" text-anchor="end">NULL</text>
+        <text x="8" y="22" fill="#ffe600" font-size="10" font-family="monospace">HEAD</text>
+      </svg>
+      <p>Un solo sentido: de <code>head</code> hacia <code>null</code>. No se puede retroceder.</p>
+      <ul>
+        <li>Menos memoria por nodo</li>
+        <li>Recorrido solo hacia adelante</li>
+        <li>Base de pilas y colas</li>
+      </ul>
+    </div>
+
+    <div class="type-card reveal">
+      <span class="badge">DOBLE</span>
+      <h3>Lista Doblemente Enlazada</h3>
+      <svg viewBox="0 0 300 96" aria-label="Lista doble">
+        <defs>
+          <marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#00f0ff"/>
+          </marker>
+          <marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#ff2bd6"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="#00f0ff" stroke-width="2">
+          <rect x="8" y="30" width="58" height="36"/>
+          <rect x="122" y="30" width="58" height="36"/>
+          <rect x="236" y="30" width="58" height="36"/>
+          <line x1="66" y1="41" x2="118" y2="41" marker-end="url(#ar2)"/>
+          <line x1="180" y1="41" x2="232" y2="41" marker-end="url(#ar2)"/>
+        </g>
+        <g fill="none" stroke="#ff2bd6" stroke-width="2" stroke-dasharray="4 3">
+          <line x1="122" y1="56" x2="70" y2="56" marker-end="url(#ar3)"/>
+          <line x1="236" y1="56" x2="184" y2="56" marker-end="url(#ar3)"/>
+        </g>
+        <g fill="#bfe9f5" font-size="12" font-family="monospace" text-anchor="middle">
+          <text x="37" y="53">10</text><text x="151" y="53">20</text><text x="265" y="53">30</text>
+        </g>
+        <text x="8" y="22" fill="#ffe600" font-size="10" font-family="monospace">HEAD</text>
+        <text x="298" y="82" fill="#ffe600" font-size="10" font-family="monospace" text-anchor="end">TAIL</text>
+      </svg>
+      <p>Cada nodo tiene <code>next</code> y <code>prev</code>: se viaja en ambos sentidos.</p>
+      <ul>
+        <li>Borrado O(1) si tienes el nodo</li>
+        <li>Recorrido bidireccional</li>
+        <li>Usada en historiales y navegadores</li>
+      </ul>
+    </div>
+
+    <div class="type-card reveal">
+      <span class="badge">CIRCULAR</span>
+      <h3>Lista Circular</h3>
+      <svg viewBox="0 0 300 110" aria-label="Lista circular">
+        <defs>
+          <marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#00f0ff"/>
+          </marker>
+          <marker id="ar5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#39ff14"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="#00f0ff" stroke-width="2">
+          <rect x="20" y="26" width="54" height="34"/>
+          <rect x="123" y="26" width="54" height="34"/>
+          <rect x="226" y="26" width="54" height="34"/>
+          <line x1="74" y1="43" x2="119" y2="43" marker-end="url(#ar4)"/>
+          <line x1="177" y1="43" x2="222" y2="43" marker-end="url(#ar4)"/>
+        </g>
+        <path d="M280,60 Q280,100 150,100 Q20,100 20,62" fill="none" stroke="#39ff14" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar5)"/>
+        <g fill="#bfe9f5" font-size="12" font-family="monospace" text-anchor="middle">
+          <text x="47" y="48">10</text><text x="150" y="48">20</text><text x="253" y="48">30</text>
+        </g>
+        <text x="20" y="18" fill="#ffe600" font-size="10" font-family="monospace">HEAD</text>
+        <text x="150" y="112" fill="#39ff14" font-size="10" font-family="monospace" text-anchor="middle">next del último = head</text>
+      </svg>
+      <p>El último nodo apunta de nuevo a <code>head</code>. No existe <code>null</code>.</p>
+      <ul>
+        <li>Ideal para turnos / round-robin</li>
+        <li>Cuidado: riesgo de bucle infinito</li>
+        <li>Usada en buffers y reproductores</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CÓDIGO ================= -->
+<section id="codigo" class="section">
+  <h2 class="section-title reveal">Código</h2>
+  <p class="section-sub reveal">La misma idea en tres lenguajes</p>
+
+  <div class="code-wrap reveal">
+    <div class="tabs">
+      <button class="tab active" data-lang="js">JavaScript</button>
+      <button class="tab" data-lang="py">Python</button>
+      <button class="tab" data-lang="cpp">C++</button>
+    </div>
+    <pre><code id="codeBlock"></code></pre>
+  </div>
+</section>
+
+<!-- ================= COMPLEJIDAD ================= -->
+<section id="complejidad" class="section">
+  <h2 class="section-title reveal">Complejidad</h2>
+  <p class="section-sub reveal">Coste algorítmico de las operaciones</p>
+
+  <div class="table-wrap reveal">
+    <table>
+      <thead>
+        <tr>
+          <th>Operación</th>
+          <th>Lista simple</th>
+          <th>Lista doble</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Insertar al inicio</td><td class="big-o o1">O(1)</td><td class="big-o o1">O(1)</td><td>Solo se reajusta head</td></tr>
+        <tr><td>Insertar al final</td><td class="big-o on">O(n)</td><td class="big-o o1">O(1)*</td><td>*Con puntero <code>tail</code></td></tr>
+        <tr><td>Insertar en posición</td><td class="big-o on">O(n)</td><td class="big-o on">O(n)</td><td>Hay que recorrer hasta el índice</td></tr>
+        <tr><td>Buscar por valor</td><td class="big-o on">O(n)</td><td class="big-o on">O(n)</td><td>Acceso secuencial</td></tr>
+        <tr><td>Eliminar al inicio</td><td class="big-o o1">O(1)</td><td class="big-o o1">O(1)</td><td>head = head.next</td></tr>
+        <tr><td>Eliminar nodo dado</td><td class="big-o on">O(n)</td><td class="big-o o1">O(1)</td><td>En doble basta reajustar prev y next</td></tr>
+        <tr><td>Acceso por índice</td><td class="big-o on">O(n)</td><td class="big-o on">O(n)</td><td>Su gran desventaja frente al array</td></tr>
+        <tr><td>Espacio en memoria</td><td class="big-o on">O(n)</td><td class="big-o on">O(n)</td><td>+ punteros extra por nodo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= QUIZ ================= -->
+<section id="quiz" class="section">
+  <h2 class="section-title reveal">Quiz</h2>
+  <p class="section-sub reveal">Verifica tu comprensión</p>
+
+  <div class="quiz-box reveal" id="quizBox"></div>
+</section>
+
+</main>
+
+<footer>
+  <div>NEON::LINKED_LISTS — <span class="glow">Manual interactivo de estructuras de datos</span></div>
+  <div style="margin-top:.6rem;opacity:.6">// el conocimiento es un puntero: si no lo sigues, se pierde en la memoria</div>
+</footer>
+
+<script>
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* ============================================================
+   EFECTO TYPER DEL HERO
+   ============================================================ */
+(function typer(){
+  const phrases = [
+    '// cada nodo guarda un dato y una dirección al siguiente',
+    '// head → [dato|next] → [dato|next] → NULL',
+    '// tamaño dinámico · memoria dispersa · punteros',
+    '// la estructura que hace posible el scroll infinito'
+  ];
+  const el = $('#typer');
+  let p = 0, c = 0, deleting = false;
+
+  function tick(){
+    const cur = phrases[p];
+    if(!deleting){
+      c++;
+      el.textContent = cur.slice(0, c);
+      if(c === cur.length){ deleting = true; return setTimeout(tick, 2200); }
+      setTimeout(tick, 34);
+    } else {
+      c--;
+      el.textContent = cur.slice(0, c);
+      if(c === 0){ deleting = false; p = (p + 1) % phrases.length; return setTimeout(tick, 320); }
+      setTimeout(tick, 16);
+    }
+  }
+  tick();
+})();
+
+/* ============================================================
+   REVEAL ON SCROLL
+   ============================================================ */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+$$('.reveal').forEach(el => io.observe(el));
+
+/* ============================================================
+   LABORATORIO — LISTA ENLAZADA INTERACTIVA
+   ============================================================ */
+const state = { list: [], busy: false };
+let nodeEls = [];
+const logEl  = $('#log');
+const trackEl = $('#track');
+
+/* --- Log seguro (sin innerHTML para datos del usuario) --- */
+function log(msg, type = 'info'){
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  const ts = document.createElement('span');
+  ts.className = 'ts';
+  ts.textContent = '[' + new Date().toLocaleTimeString('es-ES') + ']';
+  line.appendChild(ts);
+  line.appendChild(document.createTextNode(' ' + msg));
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+  while(logEl.children.length > 70) logEl.removeChild(logEl.firstChild);
+}
+
+/* --- Render de la pista de nodos --- */
+function render(){
+  trackEl.innerHTML = '';
+  nodeEls = [];
+
+  // HEAD
+  const head = document.createElement('div');
+  head.className = 'head-badge';
+  head.textContent = 'HEAD';
+  trackEl.appendChild(head);
+
+  const firstArrow = document.createElement('div');
+  firstArrow.className = 'arrow';
+  trackEl.appendChild(firstArrow);
+
+  if(state.list.length === 0){
+    const nul = document.createElement('div');
+    nul.className = 'null-node';
+    nul.textContent = 'NULL';
+    trackEl.appendChild(nul);
+    return;
+  }
+
+  state.list.forEach((val, i) => {
+    const n = document.createElement('div');
+    n.className = 'node';
+    n.textContent = val;
+    n.title = 'nodo[' + i + '] · dato=' + val + ' · next=' + (i < state.list.length - 1 ? 'nodo[' + (i+1) + ']' : 'NULL');
+    trackEl.appendChild(n);
+    nodeEls.push(n);
+
+    const a = document.createElement('div');
+    a.className = 'arrow';
+    trackEl.appendChild(a);
+  });
+
+  const nul = document.createElement('div');
+  nul.className = 'null-node';
+  nul.textContent = 'NULL';
+  trackEl.appendChild(nul);
+}
+
+/* --- Guardas y lectura de inputs --- */
+function busyGuard(){
+  if(state.busy){ log('⏳ espera a que termine la animación en curso...', 'warn'); return false; }
+  return true;
+}
+function readVal(){
+  const raw = $('#inputVal').value.trim();
+  if(raw === ''){ log('⚠️ introduce un valor antes de ejecutar la operación', 'warn'); return null; }
+  return raw;
+}
+function numEq(a, b){ return String(a) === String(b); }
+
+/* --- OPERACIONES --- */
+async function insertHead(){
+  if(!busyGuard()) return;
+  const val = readVal(); if(val === null) return;
+  state.busy = true;
+  state.list.unshift(val);
+  render();
+  if(nodeEls[0]) nodeEls[0].classList.add('spawn');
+  log('insertHead(' + val + ') → nuevo nodo al frente. Complejidad O(1)', 'ok');
+  await sleep(620);
+  state.busy = false;
+}
+
+async function insertTail(){
+  if(!busyGuard()) return;
+  const val = readVal(); if(val === null) return;
+  state.busy = true;
+  state.list.push(val);
+  render();
+  const last = nodeEls[nodeEls.length - 1];
+  if(last) last.classList.add('spawn');
+  log('insertTail(' + val + ') → recorrido hasta el final O(n), enlace O(1)', 'ok');
+  await sleep(620);
+  state.busy = false;
+}
+
+async function insertAt(){
+  if(!busyGuard()) return;
+  const val = readVal(); if(val === null) return;
+  const rawIdx = $('#inputIdx').value.trim();
+  if(rawIdx === ''){ log('⚠️ indica un índice para insertar', 'warn'); return; }
+  let idx = parseInt(rawIdx, 10);
+  if(isNaN(idx) || idx < 0){ log('⚠️ índice inválido (debe ser un entero ≥ 0)', 'warn'); return; }
+
+  state.busy = true;
+  const clamped = Math.min(idx, state.list.length);
+  if(clamped !== idx) log('⚠️ índice ' + idx + ' fuera de rango → se ajusta a ' + clamped, 'warn');
+
+  log('insertAt(' + clamped + ', ' + val + ') → avanzando hasta la posición...', 'info');
+  for(let i = 0; i < clamped && i < nodeEls.length; i++){
+    nodeEls[i].classList.add('visited');
+    await sleep(130);
+  }
+
+  state.list.splice(clamped, 0, val);
+  render();
+  if(nodeEls[clamped]) nodeEls[clamped].classList.add('spawn');
+  log('insertAt(' + clamped + ', ' + val + ') → inserción realizada. Recorrido O(n), enlace O(1)', 'ok');
+  await sleep(650);
+  state.busy = false;
+}
+
+async function traverse(){
+  if(!busyGuard()) return;
+  if(state.list.length === 0){ log('lista vacía → HEAD apunta directamente a NULL', 'warn'); return; }
+  state.busy = true;
+  log('traverse() → iniciando recorrido desde HEAD...', 'info');
+
+  const visited = [];
+  for(let i = 0; i < nodeEls.length; i++){
+    nodeEls[i].classList.add('active');
+    const nextTxt = (i < state.list.length - 1) ? 'nodo[' + (i+1) + ']' : 'NULL';
+    log('  nodo[' + i + '].dato = ' + state.list[i] + '  ·  next = ' + nextTxt, 'dim');
+    visited.push(state.list[i]);
+    await sleep(430);
+    nodeEls[i].classList.remove('active');
+    nodeEls[i].classList.add('visited');
+  }
+  log('recorrido completo: HEAD → ' + visited.join(' → ') + ' → NULL', 'ok');
+  await sleep(700);
+  state.busy = false;
+}
+
+async function searchVal(){
+  if(!busyGuard()) return;
+  const val = readVal(); if(val === null) return;
+  if(state.list.length === 0){ log('lista vacía → nada que buscar', 'warn'); return; }
+
+  state.busy = true;
+  log('search(' + val + ') → recorrido secuencial desde HEAD...', 'info');
+  let found = false;
+
+  for(let i = 0; i < state.list.length; i++){
+    nodeEls[i].classList.add('active');
+    await sleep(400);
+
+    if(numEq(state.list[i], val)){
+      nodeEls[i].classList.remove('active');
+      nodeEls[i].classList.add('found');
+      log('✔ encontrado en índice ' + i + ' tras ' + (i+1) + ' comparación(es). Complejidad O(n)', 'ok');
+      found = true;
+      await sleep(1000);
+      nodeEls[i].classList.remove('found');
+      break;
+    }
+    nodeEls[i].classList.remove('active');
+    nodeEls[i].classList.add('visited');
+    await sleep(90);
+  }
+
+  if(!found) log('✘ "' + val + '" no existe. Se recorrieron ' + state.list.length + ' nodo(s) hasta NULL', 'err');
+  state.busy = false;
+}
+
+async function deleteVal(){
+  if(!busyGuard()) return;
+  const val = readVal(); if(val === null) return;
+  const idx = state.list.findIndex(v => numEq(v, val));
+  if(idx === -1){ log('✘ no se puede eliminar "' + val + '": no existe en la lista', 'err'); return; }
+
+  state.busy = true;
+  log('delete(' + val + ') → buscando el nodo a eliminar...', 'info');
+  for(let i = 0; i < idx; i++){
+    nodeEls[i].classList.add('visited');
+    await sleep(160);
+  }
+  nodeEls[idx].classList.add('removing');
+  await sleep(470);
+
+  state.list.splice(idx, 1);
+  render();
+  log('delete(' + val + ') → nodo en índice ' + idx + ' eliminado y punteros reconectados', 'ok');
+  log('  (en C/C++ recuerda liberar la memoria con delete/free)', 'dim');
+  await sleep(500);
+  state.busy = false;
+}
+
+async function randomFill(){
+  if(!busyGuard()) return;
+  state.busy = true;
+  state.list = [];
+  const n = 3 + Math.floor(Math.random() * 3);
+  for(let i = 0; i < n; i++){
+    state.list.push(Math.floor(Math.random() * 90) + 10);
+  }
+  render();
+  nodeEls.forEach((el, i) => setTimeout(() => el.classList.add('spawn'), i * 110));
+  log('lista generada con ' + n + ' nodos aleatorios', 'ok');
+  await sleep(n * 110 + 600);
+  state.busy = false;
+}
+
+async function resetList(){
+  if(!busyGuard()) return;
+  state.list = [];
+  render();
+  log('reset() → head = null · lista vacía', 'warn');
+}
+
+/* --- Eventos de botones --- */
+document.querySelectorAll('.controls .btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    switch(btn.dataset.action){
+      case 'head':     insertHead(); break;
+      case 'tail':     insertTail(); break;
+      case 'index':    insertAt();   break;
+      case 'search':   searchVal();  break;
+      case 'delete':   deleteVal();  break;
+      case 'traverse': traverse();   break;
+      case 'random':   randomFill(); break;
+      case 'reset':    resetList();  break;
+    }
+  });
+});
+
+$('#inputVal').addEventListener('keydown', e => {
+  if(e.key === 'Enter') insertTail();
+});
+
+/* --- Arranque --- */
+(function bootLab(){
+  state.list = [12, 34, 56];
+  render();
+  log('sistema inicializado · módulo linked_list v1.0', 'ok');
+  log('lista de ejemplo cargada: HEAD → 12 → 34 → 56 → NULL', 'info');
+  log('usa los controles para insertar, buscar, eliminar y recorrer', 'dim');
+})();
+
+/* ============================================================
+   CÓDIGO CON RESALTADO
+   ============================================================ */
+const SNIPPETS = {
+  js: `// ===== NODO: unidad básica de la lista =====
+class Node {
+  constructor(dato) {
+    this.dato = dato;   // valor almacenado
+    this.next = null;   // puntero al siguiente nodo
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;   // puntero al primer nodo
+    this.size = 0;
+  }
+
+  // Insertar al inicio -> O(1)
+  insertHead(dato) {
+    const nuevo = new Node(dato);
+    nuevo.next = this.head;
+    this.head = nuevo;
+    this.size++;
+  }
+
+  // Insertar al final -> O(n)
+  insertTail(dato) {
+    const nuevo = new Node(dato);
+    if (!this.head) {
+      this.head = nuevo;
+    } else {
+      let actual = this.head;
+      while (actual.next) actual = actual.next;
+      actual.next = nuevo;
+    }
+    this.size++;
+  }
+
+  // Buscar por valor -> O(n)
+  search(dato) {
+    let actual = this.head;
+    let i = 0;
+    while (actual) {
+      if (actual.dato === dato) return i;
+      actual = actual.next;
+      i++;
+    }
+    return -1;
+  }
+
+  // Recorrer e imprimir
+  print() {
+    let actual = this.head;
+    const out = [];
+    while (actual) {
+      out.push(actual.dato);
+      actual = actual.next;
+    }
+    console.log(out.join(" -> ") + " -> NULL");
+  }
+}
+
+const lista = new LinkedList();
+lista.insertHead(10);
+lista.insertTail(20);
+lista.insertTail(30);
+lista.print();          // 10 -> 20 -> 30 -> NULL
+console.log(lista.search(20));  // 1`,
+
+  py: `# ===== NODO: unidad básica de la lista =====
+class Node:
+    def __init__(self, dato):
+        self.dato = dato      # valor almacenado
+        self.next = None      # puntero al siguiente nodo
+
+
+class LinkedList:
+    def __init__(self):
+        self.head = None      # puntero al primer nodo
+        self.size = 0
+
+    # Insertar al inicio -> O(1)
+    def insert_head(self, dato):
+        nuevo = Node(dato)
+        nuevo.next = self.head
+        self.head = nuevo
+        self.size += 1
+
+    # Insertar al final -> O(n)
+    def insert_tail(self, dato):
+        nuevo = Node(dato)
+        if self.head is None:
+            self.head = nuevo
+        else:
+            actual = self.head
+            while actual.next:
+                actual = actual.next
+            actual.next = nuevo
+        self.size += 1
+
+    # Buscar por valor -> O(n)
+    def search(self, dato):
+        actual = self.head
+        i = 0
+        while actual:
+            if actual.dato == dato:
+                return i
+            actual = actual.next
+            i += 1
+        return -1
+
+    # Recorrer e imprimir
+    def print_list(self):
+        actual = self.head
+        out = []
+        while actual:
+            out.append(str(actual.dato))
+            actual = actual.next
+        print(" -> ".join(out) + " -> NULL")
+
+
+lista = LinkedList()
+lista.insert_head(10)
+lista.insert_tail(20)
+lista.insert_tail(30)
+lista.print_list()          # 10 -> 20 -> 30 -> NULL
+print(lista.search(20))     # 1`,
+
+  cpp: `#include <iostream>
+
+// ===== NODO: unidad básica de la lista =====
+struct Node {
+    int dato;        // valor almacenado
+    Node* next;      // puntero al siguiente nodo
+    Node(int d) : dato(d), next(nullptr) {}
+};
+
+class LinkedList {
+    Node* head = nullptr;
+    int size = 0;
+
+public:
+    // Insertar al inicio -> O(1)
+    void insertHead(int dato) {
+        Node* nuevo = new Node(dato);
+        nuevo->next = head;
+        head = nuevo;
+        size++;
+    }
+
+    // Insertar al final -> O(n)
+    void insertTail(int dato) {
+        Node* nuevo = new Node(dato);
+        if (head == nullptr) {
+            head = nuevo;
+        } else {
+            Node* actual = head;
+            while (actual->next != nullptr) {
+                actual = actual->next;
+            }
+            actual->next = nuevo;
+        }
+        size++;
+    }
+
+    // Buscar por valor -> O(n)
+    int search(int dato) {
+        Node* actual = head;
+        int i = 0;
+        while (actual != nullptr) {
+            if (actual->dato == dato) return i;
+            actual = actual->next;
+            i++;
+        }
+        return -1;
+    }
+
+    // Recorrer e imprimir
+    void print() {
+        Node* actual = head;
+        while (actual != nullptr) {
+            std::cout << actual->dato << " -> ";
+            actual = actual->next;
+        }
+        std::cout << "NULL" << std::endl;
+    }
+
+    // Liberar memoria (¡esencial en C++!)
+    ~LinkedList() {
+        while (head != nullptr) {
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+
+int main() {
+    LinkedList lista;
+    lista.insertHead(10);
+    lista.insertTail(20);
+    lista.insertTail(30);
+    lista.print();              // 10 -> 20 -> 30 -> NULL
+    std::cout << lista.search(20) << std::endl;  // 1
+    return 0;
+}`
+};
+
+function escapeHtml(s){
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function highlight(code){
+  const escaped = escapeHtml(code);
+  const re = /(\/\/[^\n]*|#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(class|struct|function|const|let|var|return|if|else|while|for|new|delete|this|def|self|None|nullptr|null|void|int|public|private|include|in|is|not|True|False|print|main|std|console|log)\b|\b(\d+)\b/g;
+
+  return escaped.replace(re, (m, com, str, kw, num) => {
+    if(com) return '<span class="c-com">' + com + '</span>';
+    if(str) return '<span class="c-str">' + str + '</span>';
+    if(kw)  return '<span class="c-kw">' + kw + '</span>';
+    if(num) return '<span class="c-num">' + num + '</span>';
+    return m;
+  });
+}
+
+function showCode(lang){
+  const block = $('#codeBlock');
+  block.innerHTML = highlight(SNIPPETS[lang]);
+}
+
+$$('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    showCode(tab.dataset.lang);
+  });
+});
+showCode('js');
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+const QUIZ = [
+  {
+    q: '¿Cuál es la complejidad de insertar un nodo al INICIO de una lista simplemente enlazada?',
+    opts: ['O(1)', 'O(n)', 'O(log n)', 'O(n²)'],
+    a: 0,
+    exp: 'Solo se reajustan dos punteros: nuevo.next = head y head = nuevo. No hay que recorrer nada.'
+  },
+  {
+    q: 'En una lista simplemente enlazada, ¿qué indica que el campo next del último nodo sea null?',
+    opts: ['Que la lista está corrupta', 'Que es el final de la lista', 'Que hay un nodo duplicado', 'Que head debe eliminarse'],
+    a: 1,
+    exp: 'null (o None / nullptr) marca el final del recorrido. Es la condición de parada del while.'
+  },
+  {
+    q: '¿Cuál es la PRINCIPAL ventaja de una lista enlazada frente a un array?',
+    opts: ['Acceso por índice en O(1)', 'Menor uso de memoria siempre', 'Tamaño dinámico e inserción/borrado eficientes', 'Ordena los datos automáticamente'],
+    a: 2,
+    exp: 'La lista crece y se reduce en tiempo de ejecución sin reasignar bloques contiguos de memoria.'
+  },
+  {
+    q: '¿Qué diferencia clave tiene una lista doblemente enlazada?',
+    opts: ['Guarda los datos ordenados', 'Cada nodo tiene puntero next y prev', 'No necesita head', 'No usa null'],
+    a: 1,
+    exp: 'El puntero prev permite recorrer en ambos sentidos y eliminar un nodo en O(1) si ya lo tienes.'
+  },
+  {
+    q: 'En una lista circular, ¿a qué apunta el campo next del último nodo?',
+    opts: ['A null', 'A sí mismo siempre', 'Al primer nodo (head)', 'A un nodo centinela obligatorio'],
+    a: 2,
+    exp: 'El último nodo enlaza de nuevo con head, formando un ciclo. Por eso hay que controlar el bucle infinito.'
+  },
+  {
+    q: '¿Cuál es la complejidad de buscar un valor en una lista enlazada?',
+    opts: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+    a: 2,
+    exp: 'El acceso es secuencial: en el peor caso hay que visitar todos los nodos hasta llegar a NULL.'
+  }
+];
+
+let qIndex = 0, qScore = 0;
+
+function renderQuiz(){
+  const box = $('#quizBox');
+
+  if(qIndex >= QUIZ.length){
+    const pct = Math.round((qScore / QUIZ.length) * 100);
+    let msg = 'Necesitas repasar los fundamentos. ¡Vuelve al laboratorio!';
+    if(pct === 100) msg = 'PERFECTO. Dominas las listas enlazadas. // SYSTEM OVERRIDE COMPLETE';
+    else if(pct >= 66) msg = 'Buen nivel. Ya piensas como un puntero.';
+    else if(pct >= 40) msg = 'Vas por buen camino, pero refuerza la complejidad.';
+
+    box.innerHTML =
+      '<div class="quiz-result">' +
+        '<div class="quiz-meta">RESULTADO FINAL</div>' +
+        '<span class="score">' + qScore + ' / ' + QUIZ.length + '</span>' +
+        '<div class="msg">' + msg + '</div>' +
+        '<button class="btn magenta" id="quizReset">⟲ REINICIAR QUIZ</button>' +
+      '</div>';
+    $('#quizReset').addEventListener('click', () => { qIndex = 0; qScore = 0; renderQuiz(); });
+    return;
+  }
+
+  const item = QUIZ[qIndex];
+  box.innerHTML =
+    '<div class="quiz-meta">PREGUNTA ' + (qIndex + 1) + ' / ' + QUIZ.length +
+      ' &nbsp;·&nbsp; SCORE: ' + qScore + '</div>' +
+    '<div class="quiz-q">' + item.q + '</div>' +
+    '<div class="quiz-opts">' +
+      item.opts.map((o, i) =>
+        '<button class="quiz-opt" data-i="' + i + '">' +
+          String.fromCharCode(65 + i) + ') ' + o +
+        '</button>'
+      ).join('') +
+    '</div>' +
+    '<div class="quiz-exp" id="quizExp"></div>';
+
+  box.querySelectorAll('.quiz-opt').forEach(btn => {
+    btn.addEventListener('click', () => answerQuiz(parseInt(btn.dataset.i, 10), btn, item));
+  });
+}
+
+function answerQuiz(chosen, btn, item){
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((b, i) => {
+    b.disabled = true;
+    if(i === item.a) b.classList.add('correct');
+    else if(i === chosen) b.classList.add('wrong');
+  });
+
+  if(chosen === item.a) qScore++;
+
+  const exp = $('#quizExp');
+  exp.innerHTML = '<b>' + (chosen === item.a ? '✔ CORRECTO' : '✘ INCORRECTO') + '</b> — ' + item.exp;
+  exp.classList.add('show');
+
+  const next = document.createElement('button');
+  next.className = 'btn';
+  next.style.marginTop = '1.2rem';
+  next.textContent = (qIndex === QUIZ.length - 1) ? '▶ VER RESULTADO' : '▶ SIGUIENTE';
+  next.addEventListener('click', () => { qIndex++; renderQuiz(); });
+  exp.appendChild(document.createElement('br'));
+  exp.appendChild(next);
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
