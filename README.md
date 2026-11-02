@@ -6,170 +6,386 @@ https://dbcolmenaresp.github.io/listasenlazadas.github.io/listasenlazadas.svg
 
 Imagen SVG didáctica: Fundamentos de listas enlazadas
 
-Como modelo de lenguaje no puedo generar imágenes raster (PNG/JPG) directamente, pero sí puedo construirte una imagen vectorial SVG completa, autocontenida y con estética cyberpunk, que puedes guardar como archivo .svg y abrir en cualquier navegador (o convertir a PNG con cualquier herramienta).
 
-Cómo usarla:
+Clase teórica: Listas enlazadas desde los fundamentos
 
-1. Copia todo el código del bloque.
-2. Guárdalo como listas-enlazadas.svg.
-3. Ábrelo en Chrome/Firefox o conviértelo a PNG con convert listas-enlazadas.svg listas-enlazadas.png (ImageMagick).
+Duración sugerida: 90 minutos
+Prerrequisitos: variables, referencias/punteros, funciones, memoria dinámica básica y noción intuitiva de complejidad.
+Idea central: una lista enlazada no es un arreglo: es una cadena de nodos donde cada nodo conoce al siguiente. Se accede desde una referencia llamada cabeza (head).
 
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="'Courier New', Courier, monospace">
-  <style>
-    .title-glow { animation: pulseGlow 4s ease-in-out infinite; }
-    @keyframes pulseGlow {
-      0%, 100% { filter: drop-shadow(0 0 10px #00fff9); }
-      50%      { filter: drop-shadow(0 0 26px #00fff9); }
-    }
-    .blink { animation: blink 1.6s steps(2) infinite; }
-    @keyframes blink { 50% { opacity: 0.25; } }
-  </style>
+---
 
-  <defs>
-    <filter id="glowCyan" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glowMagenta" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <marker id="arrowMag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff2bd6"/>
-    </marker>
-    <linearGradient id="linkGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#00fff9"/>
-      <stop offset="100%" stop-color="#ff2bd6"/>
-    </linearGradient>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00fff9" stroke-opacity="0.06" stroke-width="1"/>
-    </pattern>
-    <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
-      <stop offset="40%"  stop-color="#05060a" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#05060a" stop-opacity="0.9"/>
-    </radialGradient>
-    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#00fff9" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="#00fff9" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
+1. Objetivos de aprendizaje
 
-  <!-- FONDO -->
-  <rect width="1200" height="900" fill="#05060a"/>
-  <rect width="1200" height="900" fill="url(#grid)"/>
-  <circle cx="600" cy="450" r="380" fill="url(#halo)"/>
-  <rect width="1200" height="900" fill="url(#vignette)"/>
+Al finalizar la clase, el estudiante deberá poder:
 
-  <!-- ESQUINAS -->
-  <path d="M 30 70 L 30 30 L 70 30"     fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
-  <path d="M 1130 30 L 1170 30 L 1170 70" fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
-  <path d="M 30 830 L 30 870 L 70 870"    fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
-  <path d="M 1130 870 L 1170 870 L 1170 830" fill="none" stroke="#00fff9" stroke-width="2" stroke-opacity="0.7"/>
-  <rect x="30" y="30" width="1140" height="840" fill="none" stroke="#00fff9" stroke-opacity="0.15"/>
+1. Definir qué es un nodo y qué es una lista enlazada.
+2. Explicar la diferencia entre el TAD Lista y su implementación mediante enlaces.
+3. Recorrer, insertar, buscar y eliminar elementos en una lista simplemente enlazada.
+4. Analizar la complejidad temporal de las operaciones principales.
+5. Identificar errores frecuentes: perder la cabeza, no actualizar la cola, recorrer un nulo, fugas de memoria.
+6. Comparar listas enlazadas con arreglos y decidir cuándo usar cada estructura.
 
-  <!-- HEADER -->
-  <text x="600" y="80" text-anchor="middle" fill="#ff2bd6" font-size="13" letter-spacing="6" class="blink">// ESTRUCTURA DE DATOS DINÁMICA</text>
-  <text x="600" y="140" text-anchor="middle" fill="#00fff9" font-size="52" font-weight="bold" letter-spacing="4" class="title-glow">LISTAS ENLAZADAS</text>
-  <line x1="420" y1="165" x2="780" y2="165" stroke="#00fff9" stroke-opacity="0.4"/>
+---
 
-  <!-- ============ SECCIÓN 01 ============ -->
-  <rect x="60" y="205" width="56" height="26" rx="4" fill="none" stroke="#ff2bd6" stroke-width="1.5" opacity="0.85"/>
-  <text x="88" y="223" text-anchor="middle" fill="#ff2bd6" font-size="14" letter-spacing="3">01</text>
-  <text x="130" y="224" fill="#f9f002" font-size="16" font-weight="bold" letter-spacing="3">ANATOMÍA DEL NODO</text>
+2. Motivación: ¿por qué no usar siempre arreglos?
 
-  <!-- Caja del nodo -->
-  <rect x="350" y="240" width="500" height="130" rx="12" fill="#00fff9" fill-opacity="0.04" stroke="#00fff9" stroke-width="2" filter="url(#glowCyan)"/>
-  <line x1="600" y1="240" x2="600" y2="370" stroke="#00fff9" stroke-opacity="0.3"/>
+Un arreglo permite acceso directo por índice en O(1), pero tiene limitaciones:
 
-  <!-- Etiquetas -->
-  <text x="475" y="278" text-anchor="middle" fill="#00fff9" font-size="13" letter-spacing="3">dato</text>
-  <text x="725" y="278" text-anchor="middle" fill="#ff2bd6" font-size="13" letter-spacing="3">siguiente</text>
+· Tamaño fijo o redimensionamiento costoso.
+· Insertar o eliminar en medio requiere desplazar elementos: O(n).
+· La memoria suele ser contigua.
 
-  <!-- Valor dato -->
-  <text x="475" y="340" text-anchor="middle" fill="#00fff9" font-size="52" font-weight="bold" filter="url(#glowCyan)">42</text>
+Una lista enlazada propone otra idea:
 
-  <!-- Flecha siguiente (dibujada) -->
-  <g transform="translate(683, 320)">
-    <line x1="0" y1="0" x2="68" y2="0" stroke="#ff2bd6" stroke-width="4"/>
-    <polygon points="68,-11 90,0 68,11" fill="#ff2bd6"/>
-  </g>
+No guardamos los elementos uno al lado del otro. Guardamos nodos dispersos en memoria y los conectamos mediante referencias.
 
-  <!-- Anotación -->
-  <text x="600" y="408" text-anchor="middle" fill="#d7e1ff" font-size="15" opacity="0.9">Un nodo almacena un dato y una referencia al siguiente nodo.</text>
+Analogía: un tren. Cada vagón tiene carga y un enganche al siguiente vagón. Solo conocemos la ubicación del primer vagón; para llegar al quinto, debemos pasar por los anteriores.
 
-  <!-- ============ SECCIÓN 02 ============ -->
-  <rect x="60" y="465" width="56" height="26" rx="4" fill="none" stroke="#ff2bd6" stroke-width="1.5" opacity="0.85"/>
-  <text x="88" y="483" text-anchor="middle" fill="#ff2bd6" font-size="14" letter-spacing="3">02</text>
-  <text x="130" y="484" fill="#f9f002" font-size="16" font-weight="bold" letter-spacing="3">CADENA DE NODOS</text>
+---
 
-  <!-- HEAD pointer -->
-  <text x="230" y="522" text-anchor="middle" fill="#00fff9" font-size="12" letter-spacing="4">HEAD</text>
-  <line x1="230" y1="530" x2="230" y2="557" stroke="#ff2bd6" stroke-width="2" marker-end="url(#arrowMag)"/>
+3. Concepto de nodo
 
-  <!-- Nodo 1 -->
-  <rect x="180" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
-  <text x="230" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">10</text>
-  <circle cx="278" cy="600" r="4" fill="#ff2bd6"/>
+El bloque fundamental es el nodo. Un nodo contiene:
 
-  <!-- Enlace 1 -->
-  <line x1="284" y1="600" x2="354" y2="600" stroke="url(#linkGrad)" stroke-width="2" marker-end="url(#arrowMag)"/>
-  <text x="320" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+· Un dato.
+· Una referencia al siguiente nodo.
 
-  <!-- Nodo 2 -->
-  <rect x="360" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
-  <text x="410" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">20</text>
-  <circle cx="458" cy="600" r="4" fill="#ff2bd6"/>
+Pseudocódigo conceptual:
 
-  <!-- Enlace 2 -->
-  <line x1="464" y1="600" x2="534" y2="600" stroke="url(#linkGrad)" stroke-width="2" marker-end="url(#arrowMag)"/>
-  <text x="500" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+```text
+Nodo:
+    dato
+    siguiente
+```
 
-  <!-- Nodo 3 -->
-  <rect x="540" y="560" width="100" height="80" rx="10" fill="#00fff9" fill-opacity="0.05" stroke="#00fff9" stroke-width="2"/>
-  <text x="590" y="612" text-anchor="middle" fill="#00fff9" font-size="26" font-weight="bold" filter="url(#glowCyan)">30</text>
-  <circle cx="638" cy="600" r="4" fill="#ff2bd6"/>
+En C/C++ sería un puntero; en Java o Python, una referencia. Usaremos nulo para representar NULL, null o None.
 
-  <!-- Enlace 3 (punteado hasta NULL) -->
-  <line x1="644" y1="600" x2="714" y2="600" stroke="#6b7a99" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowMag)"/>
-  <text x="680" y="586" text-anchor="middle" fill="#6b7a99" font-size="10" letter-spacing="2">next</text>
+Diagrama de una lista simplemente enlazada:
 
-  <!-- NULL -->
-  <rect x="720" y="580" width="90" height="40" rx="6" fill="none" stroke="#6b7a99" stroke-width="1.5" stroke-dasharray="4 4"/>
-  <text x="765" y="606" text-anchor="middle" fill="#6b7a99" font-size="13" letter-spacing="3">NULL</text>
+```text
+cabeza
+  |
+  v
++------+------+     +------+------+     +------+------+
+| dato | next | --> | dato | next | --> | dato | null |
++------+------+     +------+------+     +------+------+
+```
 
-  <!-- Anotación inferior -->
-  <text x="600" y="692" text-anchor="middle" fill="#d7e1ff" font-size="15" opacity="0.9">Se accede por la cabeza · cada nodo conoce al siguiente · el último apunta a null</text>
+La lista está vacía si:
 
-  <!-- Divisor -->
-  <line x1="200" y1="740" x2="1000" y2="740" stroke="#00fff9" stroke-opacity="0.2"/>
-
-  <!-- Cita final -->
-  <text x="600" y="792" text-anchor="middle" fill="#f9f002" font-size="16" font-style="italic" letter-spacing="1">"En una lista enlazada no movemos datos: movemos enlaces."</text>
-
-  <!-- Pie -->
-  <text x="600" y="842" text-anchor="middle" fill="#6b7a99" font-size="11" letter-spacing="4">v1.0 · NEON LINK · FUNDAMENTOS DE LISTAS ENLAZADAS</text>
-</svg>
+```text
+cabeza = nulo
 ```
 
 ---
 
-¿Qué representa la imagen?
+4. Definición formal
 
-Zona Concepto pedagógico
-Header Título y contexto: estructura de datos dinámica
-Sección 01 Anatomía del nodo: dos campos (dato + siguiente), con flecha visualizando el puntero
-Sección 02 Cadena completa: HEAD → 10 → 20 → 30 → NULL, con etiquetas next sobre cada enlace
-Detalles El puntero HEAD en magenta marca la entrada; el último enlace punteado simboliza el fin de la lista
-Frase final Síntesis conceptual: se mueven enlaces, no datos
+Una lista enlazada es una colección lineal y dinámica de nodos donde:
+
+1. Cada nodo almacena un dato y una referencia al siguiente nodo.
+2. Existe una referencia de acceso llamada cabeza (head).
+3. El último nodo tiene siguiente = nulo.
+4. Si cabeza = nulo, la lista está vacía.
+
+Es importante distinguir:
+
+· TAD Lista: concepto abstracto: secuencia ordenada con operaciones como insertar, eliminar, buscar, recorrer.
+· Lista enlazada: una implementación concreta del TAD Lista usando nodos y referencias.
 
 ---
 
-Variantes que puedes generar a partir de esta base
+5. Operación básica: recorrido
 
-Si quieres ampliar el material para tu clase, con la misma estética puedes producir:
+Para recorrer una lista no usamos índices. Usamos una referencia auxiliar:
 
-1. Versión "doble enlace": añadir prev a cada nodo y flechas bidireccionales.
-2. Versión "circular": reemplazar NULL por una flecha que vuelve a HEAD.
-3. Versión "operaciones": tres subpaneles mostrando insertHead, insertAfter y remove con el estado antes/después.
-4. Versión "complejidad": con un semáforo de colores verde/amarillo/rojo junto a cada operación.
+```text
+recorrer(lista):
+    actual = lista.cabeza
+    mientras actual != nulo:
+        procesar(actual.dato)
+        actual = actual.siguiente
+```
+
+Complejidad: O(n).
+
+Error clásico: escribir actual = actual.siguiente sin comprobar que actual no sea nulo. Eso produce un error de referencia nula.
+
+---
+
+6. Operaciones fundamentales
+
+6.1 Insertar al inicio
+
+```text
+insertarAlInicio(lista, x):
+    nuevo = Nodo(x)
+    nuevo.siguiente = lista.cabeza
+    lista.cabeza = nuevo
+    si lista.cola == nulo:
+        lista.cola = nuevo
+```
+
+Complejidad: O(1).
+
+Diagrama:
+
+```text
+Antes:  cabeza -> A -> B -> nulo
+Después: cabeza -> X -> A -> B -> nulo
+```
+
+---
+
+6.2 Insertar después de un nodo conocido
+
+```text
+insertarDespues(nodo, x):
+    si nodo == nulo: error
+    nuevo = Nodo(x)
+    nuevo.siguiente = nodo.siguiente
+    nodo.siguiente = nuevo
+    si nodo == lista.cola:
+        lista.cola = nuevo
+```
+
+Complejidad: O(1), porque no hay que buscar el nodo.
+
+Orden importante: primero se enlaza el nuevo nodo con el siguiente; luego se actualiza el enlace del nodo anterior. Si se hace al revés, se pierde el resto de la lista.
+
+---
+
+6.3 Insertar al final
+
+Sin referencia a la cola:
+
+```text
+insertarAlFinal(lista, x):
+    nuevo = Nodo(x)
+    si lista.cabeza == nulo:
+        lista.cabeza = nuevo
+        lista.cola = nuevo
+        return
+    actual = lista.cabeza
+    mientras actual.siguiente != nulo:
+        actual = actual.siguiente
+    actual.siguiente = nuevo
+    lista.cola = nuevo
+```
+
+Complejidad:
+
+· Sin cola: O(n).
+· Con referencia cola: O(1).
+
+---
+
+6.4 Buscar un elemento
+
+```text
+buscar(lista, x):
+    actual = lista.cabeza
+    mientras actual != nulo:
+        si actual.dato == x:
+            return actual
+        actual = actual.siguiente
+    return nulo
+```
+
+Complejidad: O(n). La búsqueda es secuencial: no hay acceso aleatorio.
+
+---
+
+6.5 Eliminar al inicio
+
+```text
+eliminarAlInicio(lista):
+    si lista.cabeza == nulo:
+        return
+    temp = lista.cabeza
+    lista.cabeza = temp.siguiente
+    si lista.cabeza == nulo:
+        lista.cola = nulo
+    liberar(temp)
+```
+
+Complejidad: O(1).
+
+Casos límite:
+
+· Lista vacía: no hacer nada o lanzar error controlado.
+· Lista con un solo nodo: actualizar cabeza y cola a nulo.
+
+---
+
+6.6 Eliminar después de un nodo conocido
+
+```text
+eliminarDespues(prev):
+    si prev == nulo o prev.siguiente == nulo:
+        return
+    temp = prev.siguiente
+    prev.siguiente = temp.siguiente
+    si temp == lista.cola:
+        lista.cola = prev
+    liberar(temp)
+```
+
+Complejidad: O(1).
+
+En una lista simplemente enlazada, para eliminar un nodo por valor normalmente hay que buscar también su anterior, porque necesitamos actualizar anterior.siguiente. Por eso eliminar por valor cuesta O(n).
+
+---
+
+7. Complejidad de operaciones
+
+Operación Lista simplemente enlazada
+Acceder por índice O(n)
+Buscar por valor O(n)
+Insertar al inicio O(1)
+Insertar al final sin cola O(n)
+Insertar al final con cola O(1)
+Insertar después de nodo conocido O(1)
+Eliminar al inicio O(1)
+Eliminar después de nodo conocido O(1)
+Eliminar al final sin doble enlace O(n)
+Recorrer O(n)
+Espacio O(n)
+
+---
+
+8. Variantes de listas enlazadas
+
+8.1 Lista simplemente enlazada
+
+Cada nodo apunta solo al siguiente.
+
+```text
+A -> B -> C -> nulo
+```
+
+Ventaja: simple y poca memoria por nodo.
+Desventaja: no se puede retroceder.
+
+8.2 Lista doblemente enlazada
+
+Cada nodo tiene siguiente y anterior.
+
+```text
+nulo <- A <-> B <-> C -> nulo
+```
+
+Ventajas: recorrido en ambos sentidos; eliminar un nodo conocido es O(1).
+Desventaja: más memoria y más enlaces que mantener.
+
+8.3 Lista circular
+
+El último nodo apunta a la cabeza.
+
+```text
+A -> B -> C -> A
+```
+
+Cuidado: al recorrerla no se busca nulo; hay que detenerse al volver a la cabeza.
+
+8.4 Lista con nodo centinela
+
+Se usa un nodo ficticio al inicio para simplificar casos límite. Es una técnica habitual en implementaciones profesionales.
+
+---
+
+9. Listas enlazadas vs arreglos
+
+Aspecto Arreglo Lista enlazada
+Acceso por índice O(1) O(n)
+Inserción/eliminación al inicio O(n) O(1)
+Inserción/eliminación en medio O(n) O(1) si se conoce el nodo
+Tamaño fijo o redimensionable dinámico
+Memoria contigua dispersa
+Localidad de caché buena peor
+Sobrecarga por elemento baja referencia(s) extra
+Implementación sencilla requiere cuidado con enlaces
+
+Regla práctica: si necesitas acceso por índice frecuente, usa arreglo o lista dinámica. Si necesitas muchas inserciones/eliminaciones y recorridos secuenciales, una lista enlazada puede ser mejor.
+
+---
+
+10. Errores frecuentes
+
+1. Perder la referencia cabeza.
+2. No actualizar cola al insertar o eliminar el último nodo.
+3. Acceder a actual.siguiente cuando actual es nulo.
+4. Modificar enlaces en el orden incorrecto y perder el resto de la lista.
+5. No liberar memoria en lenguajes sin recolector de basura.
+6. Confundir el nodo con el dato que contiene.
+7. En listas circulares, recorrer indefinidamente porque nunca se llega a nulo.
+
+---
+
+11. Ejemplo integrador en pseudocódigo
+
+```text
+lista = ListaVacia()
+insertarAlInicio(lista, 30)
+insertarAlInicio(lista, 20)
+insertarAlInicio(lista, 10)
+```
+
+Estado:
+
+```text
+cabeza -> 10 -> 20 -> 30 -> nulo
+```
+
+Luego:
+
+```text
+insertarDespues(buscar(lista, 20), 25)
+```
+
+Estado:
+
+```text
+cabeza -> 10 -> 20 -> 25 -> 30 -> nulo
+```
+
+Luego:
+
+```text
+eliminarAlInicio(lista)
+```
+
+Estado:
+
+```text
+cabeza -> 20 -> 25 -> 30 -> nulo
+```
+
+---
+
+12. Cierre docente
+
+Ideas clave para dejar claras:
+
+1. Una lista enlazada es una secuencia de nodos conectados por referencias.
+2. La cabeza es la puerta de entrada; si se pierde, se pierde la lista.
+3. El acceso es secuencial, no aleatorio.
+4. Su gran ventaja es reorganizar enlaces en O(1) cuando se conoce el punto de inserción o eliminación.
+5. Su gran costo es la búsqueda O(n), el uso de memoria extra y la gestión cuidadosa de casos límite.
+
+Frase de cierre:
+
+“En una lista enlazada no movemos datos: movemos enlaces. Ahí está su potencia y también su riesgo.”
+
+---
+
+13. Ejercicios propuestos
+
+1. Dibujar la lista resultante de insertar 5, 10, 15 al inicio y luego 20 al final.
+2. Escribir una función iterativa y otra recursiva para calcular la longitud de una lista.
+3. Implementar buscar y eliminarPorValor en una lista simplemente enlazada.
+4. Invertir una lista simplemente enlazada usando tres referencias: anterior, actual, siguiente.
+5. Explicar por qué eliminar el último nodo de una lista simplemente enlazada cuesta O(n).
+6. Comparar una lista enlazada con un arreglo para implementar una cola de impresión.
+7. Detectar si una lista tiene un ciclo. Pista: algoritmo de Floyd, “liebre y tortuga”.
